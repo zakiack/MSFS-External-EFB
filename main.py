@@ -1,8 +1,6 @@
 import tkinter as tk
 from SimConnect import *
 import math
-todCalc = open("otherScripts/todCalc.py")
-loader = open("otherScripts/weightandbal.py")
 def openTod():
     def calcTodDegrees():
         sm = SimConnect()
