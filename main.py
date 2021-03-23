@@ -3,8 +3,8 @@ from SimConnect import *
 import math
 def openTod():
     def calcTodDegrees():
-        sm = SimConnect()
-        if sm:
+        try:
+            sm = SimConnect()
             aq = AircraftRequests(sm)
             finalAlt = float(finalAltEntry.get())
             alt = aq.get("PLANE_ALTITUDE")
@@ -12,12 +12,12 @@ def openTod():
             x = (y / math.tan(math.radians(-3))) / 6076.12
             sm.exit()
             todLabel.config(text="Descent Distance " + str(math.floor(x)))
-        else:
+        except Exception:
             todLabel.config(text="Could not connect to simulator!")
 
     def calcTodVert():
-        sm = SimConnect()
-        if sm:
+        try:
+            sm = SimConnect()
             aq = AircraftRequests(sm)
             vertSpeed = float(vertSpeedEntry.get())
             groundSpeed = aq.get("GROUND_VELOCITY")
@@ -27,12 +27,12 @@ def openTod():
             distance = ((y / vertSpeed) / 60) * groundSpeed
             todLabel.config(text="Descent Distance: " + str(math.floor(distance)))
             sm.exit()
-        else:
+        except Exception:
             todLabel.config(text="Could not connect to simulator!")
 
     def calcTodDist():
-        sm = SimConnect()
-        if sm:
+        try:
+            sm = SimConnect()
             aq = AircraftRequests(sm)
             alt = aq.get("PLANE_ALTITUDE")
             groundSpeed = aq.get("GROUND_VELOCITY")
@@ -41,8 +41,9 @@ def openTod():
             y = alt - finalAlt
             vertSpeed = (y * groundSpeed) / (dist * 60)
             todLabel.config(text="Vertical Speed: " + str(math.floor(vertSpeed)))
-        else:
+        except Exception:
             todLabel.config(text="Could not connect to simulator!")
+
 
     todWindow = tk.Tk()
     todWindow.title("Descent Calculator")
@@ -64,7 +65,7 @@ def openTod():
     calcButtonVert.grid(row=3, column=1)
     calcButtonDist = tk.Button(todWindow, text="Distance", command=calcTodDist)
     calcButtonDist.grid(row=3, column=2)
-    todLabel = tk.Label(todWindow, text="Enter Information")
+    todLabel = tk.Label(todWindow, text=".      Enter Information      .")
     todLabel.grid(row=4, column=1)
     todWindow.mainloop()
 def openLoader():
@@ -77,51 +78,60 @@ def openLoader():
         return kgs
 
     def kgClick():
-        kgs = float(kgEntry.get())
-        sm = SimConnect()
-        ae = AircraftEvents(sm)
-        ar = AircraftRequests(sm)
-        setFuel = ae.find("ADD_FUEL_QUANTITY")
-        totalQuantity = ar.get("FUEL_TOTAL_QUANTITY")
-        totalCapacitygal = ar.get("FUEL_TOTAL_CAPACITY")
-        weightPerGallon = ar.get("FUEL_WEIGHT_PER_GALLON")
-        totalCapacity = totalCapacitygal * weightPerGallon
-        lbs = kgToPounds(kgs)
-        fuelToAdd = (lbs / totalCapacity) * 65535
-        print(lbs)
-        print(totalCapacity)
-        print(totalQuantity)
-        print(fuelToAdd)
-        setFuel(int(fuelToAdd))
-        sm.exit()
+        try:
+            kgs = float(kgEntry.get())
+            sm = SimConnect()
+            ae = AircraftEvents(sm)
+            ar = AircraftRequests(sm)
+            setFuel = ae.find("ADD_FUEL_QUANTITY")
+            totalQuantity = ar.get("FUEL_TOTAL_QUANTITY")
+            totalCapacitygal = ar.get("FUEL_TOTAL_CAPACITY")
+            weightPerGallon = ar.get("FUEL_WEIGHT_PER_GALLON")
+            totalCapacity = totalCapacitygal * weightPerGallon
+            lbs = kgToPounds(kgs)
+            fuelToAdd = (lbs / totalCapacity) * 65535
+            print(lbs)
+            print(totalCapacity)
+            print(totalQuantity)
+            print(fuelToAdd)
+            setFuel(int(fuelToAdd))
+            sm.exit()
+            fuelLabel.config(text="Fuel Loaded!")
+        except Exception:
+            fuelLabel.config(text="Could not connect to sim!")
 
     def lbsClick():
-        lbs = float(lbsEntry.get())
-        sm = SimConnect()
-        ae = AircraftEvents(sm)
-        ar = AircraftRequests(sm)
-        setFuel = ae.find("ADD_FUEL_QUANTITY")
-        totalQuantity = ar.get("FUEL_TOTAL_QUANTITY")
-        totalCapacitygal = ar.get("FUEL_TOTAL_CAPACITY")
-        weightPerGallon = ar.get("FUEL_WEIGHT_PER_GALLON")
-        totalCapacity = totalCapacitygal * weightPerGallon
-        fuelToAdd = (lbs / totalCapacity) * 65535
-        print(totalCapacity)
-        print(totalQuantity)
-        print(fuelToAdd)
-        setFuel(int(fuelToAdd))
-        sm.exit()
-
+        try:
+            lbs = float(lbsEntry.get())
+            sm = SimConnect()
+            ae = AircraftEvents(sm)
+            ar = AircraftRequests(sm)
+            setFuel = ae.find("ADD_FUEL_QUANTITY")
+            totalQuantity = ar.get("FUEL_TOTAL_QUANTITY")
+            totalCapacitygal = ar.get("FUEL_TOTAL_CAPACITY")
+            weightPerGallon = ar.get("FUEL_WEIGHT_PER_GALLON")
+            totalCapacity = totalCapacitygal * weightPerGallon
+            fuelToAdd = (lbs / totalCapacity) * 65535
+            print(totalCapacity)
+            print(totalQuantity)
+            print(fuelToAdd)
+            setFuel(int(fuelToAdd))
+            sm.exit()
+            fuelLabel.config(text="Fuel Loaded!")
+        except Exception:
+            fuelLabel.config(text="Could not connect to sim!")
     mainWindow = tk.Tk()
     mainWindow.title("Fuel Loader")
+    fuelLabel = tk.Label(mainWindow,text="Fuel",font=("Arial",20))
+    fuelLabel.grid(row=0,column=1)
     kgButton = tk.Button(mainWindow, text="Kg", font=("Arial", 20), command=kgClick)
-    kgButton.grid(row=0, column=0)
+    kgButton.grid(row=1, column=0)
     kgEntry = tk.Entry(mainWindow, font=("Arial", 20))
-    kgEntry.grid(row=0, column=1)
+    kgEntry.grid(row=1, column=1)
     lbsButton = tk.Button(mainWindow, text="lbs", font=("Arial", 20), command=lbsClick)
-    lbsButton.grid(row=1, column=0)
+    lbsButton.grid(row=2, column=0)
     lbsEntry = tk.Entry(mainWindow, font=("Arial", 20))
-    lbsEntry.grid(row=1, column=1)
+    lbsEntry.grid(row=2, column=1)
     mainWindow.mainloop()
 masterWindow = tk.Tk()
 masterWindow.title("Zakiack's MSFS EFB")
