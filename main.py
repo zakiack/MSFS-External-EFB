@@ -154,7 +154,9 @@ def routeDecider():
         if dist:
             airP = None
             airportCords1 = (lat,lon)
-            while airP is None:
+            x=0
+            while airP is None and x<300:
+                x+=1
                 randomNum = numpy.random.randint(0, len(icaoList))
                 airport = airportsList[icaoList[randomNum]]
                 if airport["lat"] and airport["lon"]:
@@ -173,7 +175,7 @@ def routeDecider():
 
 
     def genRoute():
-        outputLabel.config(text="Error! Please reload the EFB")
+        outputLabel.config(text="Error! Please reload the Flight Generator Window!")
         global airportsList
         time = float(timeEntry.get())
         distance = time*500
