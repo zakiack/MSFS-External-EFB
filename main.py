@@ -1,6 +1,10 @@
 import tkinter as tk
 from SimConnect import *
 import math
+import json as json
+import numpy
+from functools import cache
+from haversine import haversine, Unit
 def openTod():
     def calcTodDegrees():
         try:
@@ -68,6 +72,7 @@ def openTod():
     todLabel = tk.Label(todWindow, text=".      Enter Information      .")
     todLabel.grid(row=4, column=1)
     todWindow.mainloop()
+
 def openLoader():
     def kgToPounds(kgs):
         lbs = kgs * 2.205
@@ -133,6 +138,64 @@ def openLoader():
     lbsEntry = tk.Entry(mainWindow, font=("Arial", 20))
     lbsEntry.grid(row=2, column=1)
     mainWindow.mainloop()
+
+def routeDecider():
+    def calcDist(lat1,lon1,lat2,lon2):
+        R = 3440.1
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = (math.sin(dlat / 2)) ** 2 + math.cos(lat1) * math.cos(lat2) * (math.sin(dlon / 2)) ** 2
+        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+        distance = R * c
+        return distance
+
+    @cache
+    def pickAirport(dist,lat,lon):
+        if dist:
+            airP = None
+            airportCords1 = (lat,lon)
+            while airP is None:
+                randomNum = numpy.random.randint(0, len(icaoList))
+                airport = airportsList[icaoList[randomNum]]
+                if airport["lat"] and airport["lon"]:
+                    airportCords2 = (airport["lat"], airport["lon"])
+                    actDist = haversine(airportCords1,airportCords2,unit="mi")
+                    print(airport["icao"],actDist)
+                    if dist-100 < actDist < dist+100:
+                        print("OWWHHHH GAWWD")
+                        airP = airport
+            return airP
+        else:
+            randomNum = numpy.random.randint(0, len(icaoList))
+            airport = airportsList[icaoList[randomNum]]
+            print(icaoList[randomNum])
+            return airport
+
+
+    def genRoute():
+        outputLabel.config(text="Error! Please reload the EFB")
+        global airportsList
+        time = float(timeEntry.get())
+        distance = time*500
+        airport = pickAirport(None,None,None)
+        secondAirport=pickAirport(distance,float(airport["lat"]),float(airport["lon"]))
+        outputLabel.config(text=airport["icao"] + " -> " + secondAirport["icao"])
+
+    routeWindow = tk.Tk()
+    routeWindow.title("Flight Generator")
+    thisTitleLabel = tk.Label(routeWindow,text="Flight Generator")
+    thisTitleLabel.grid(row=0,column=1)
+    timeLabel = tk.Button(routeWindow,text="Time (Hours)",command=genRoute)
+    timeLabel.grid(row=1,column=0)
+    timeEntry = tk.Entry(routeWindow)
+    timeEntry.grid(row=1,column=2)
+    outputLabel = tk.Label(routeWindow,text="Enter a Time and press the button")
+    outputLabel.grid(row=2,column=1)
+    routeWindow.mainloop()
+airportsListJson = open("airports.json",encoding='cp850')
+airportsList = json.load(airportsListJson)
+icaos = open("icaos.txt","r").read()
+icaoList = icaos.split(",")
 masterWindow = tk.Tk()
 masterWindow.title("Zakiack's MSFS EFB")
 titleLabel = tk.Label(masterWindow,text="MSFS EFB",font=("Arial",20))
@@ -141,4 +204,6 @@ todCalcButton = tk.Button(masterWindow,text="Descent Calculator",font=("Arial",2
 todCalcButton.grid(row=1,column=0)
 loaderButton = tk.Button(masterWindow,text="Weight and Balance",font=("Arial",20),command=openLoader)
 loaderButton.grid(row=2,column=0)
+routeDecButton = tk.Button(masterWindow,text="Flight Generator",font=("Arial",20),command=routeDecider)
+routeDecButton.grid(row=3,column=0)
 masterWindow.mainloop()
