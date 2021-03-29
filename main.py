@@ -149,7 +149,6 @@ def routeDecider():
         distance = R * c
         return distance
 
-    @cache
     def pickAirport(dist,lat,lon):
         if dist:
             airP = None
@@ -175,13 +174,18 @@ def routeDecider():
 
 
     def genRoute():
-        outputLabel.config(text="Error! Please reload the Flight Generator Window!")
+        outputLabel.config(text="Something went wrong! Try Again")
         global airportsList
         time = float(timeEntry.get())
         distance = time*500
-        airport = pickAirport(None,None,None)
-        secondAirport=pickAirport(distance,float(airport["lat"]),float(airport["lon"]))
+        secondAirport=None
+        y=0
+        while secondAirport is None and y<50:
+            airport = pickAirport(None,None,None)
+            secondAirport=pickAirport(distance,float(airport["lat"]),float(airport["lon"]))
+            y+=1
         outputLabel.config(text=airport["icao"] + " -> " + secondAirport["icao"])
+
 
     routeWindow = tk.Tk()
     routeWindow.title("Flight Generator")
