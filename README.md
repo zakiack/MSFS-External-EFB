@@ -1,5 +1,5 @@
 # MSFS External EFB
-An efb which uses SimConnect to improve using MSFS
+An efb which uses SimConnect to improve MSFS  
 This is just a way to teach myself python while making something useful for myself
 # Features
 TOD Calculator - Pretty Self Explainatory  
