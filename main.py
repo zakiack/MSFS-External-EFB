@@ -18,7 +18,6 @@ def openTod():
             todLabel.config(text="Descent Distance " + str(math.floor(x)))
         except Exception:
             todLabel.config(text="Could not connect to simulator!")
-
     def calcTodVert():
         try:
             sm = SimConnect()
@@ -33,7 +32,6 @@ def openTod():
             sm.exit()
         except Exception:
             todLabel.config(text="Could not connect to simulator!")
-
     def calcTodDist():
         try:
             sm = SimConnect()
@@ -47,8 +45,6 @@ def openTod():
             todLabel.config(text="Vertical Speed: " + str(math.floor(vertSpeed)))
         except Exception:
             todLabel.config(text="Could not connect to simulator!")
-
-
     todWindow = tk.Tk()
     todWindow.title("Descent Calculator")
     enterFinalAlt = tk.Label(todWindow, text="Enter Final Alt")
@@ -72,16 +68,13 @@ def openTod():
     todLabel = tk.Label(todWindow, text=".      Enter Information      .")
     todLabel.grid(row=4, column=1)
     todWindow.mainloop()
-
 def openLoader():
     def kgToPounds(kgs):
         lbs = kgs * 2.205
         return lbs
-
     def poundsToKgs(lbs):
         kgs = lbs / 2.205
         return kgs
-
     def kgClick():
         try:
             kgs = float(kgEntry.get())
@@ -104,7 +97,6 @@ def openLoader():
             fuelLabel.config(text="Fuel Loaded!")
         except Exception:
             fuelLabel.config(text="Could not connect to sim!")
-
     def lbsClick():
         try:
             lbs = float(lbsEntry.get())
@@ -138,8 +130,11 @@ def openLoader():
     lbsEntry = tk.Entry(mainWindow, font=("Arial", 20))
     lbsEntry.grid(row=2, column=1)
     mainWindow.mainloop()
-
 def routeDecider():
+    airportsListJson = open("airports.json", encoding='cp850')
+    airportsList = json.load(airportsListJson)
+    icaos = open("icaos.txt", "r").read()
+    icaoList = icaos.split(",")
     def calcDist(lat1,lon1,lat2,lon2):
         R = 3440.1
         dlon = lon2 - lon1
@@ -148,7 +143,6 @@ def routeDecider():
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
         distance = R * c
         return distance
-
     def pickAirport(dist,lat,lon):
         if dist:
             airP = None
@@ -171,8 +165,6 @@ def routeDecider():
             airport = airportsList[icaoList[randomNum]]
             print(icaoList[randomNum])
             return airport
-
-
     def genRoute():
         outputLabel.config(text="Something went wrong! Try Again")
         global airportsList
@@ -185,8 +177,6 @@ def routeDecider():
             secondAirport=pickAirport(distance,float(airport["lat"]),float(airport["lon"]))
             y+=1
         outputLabel.config(text=airport["icao"] + " -> " + secondAirport["icao"])
-
-
     routeWindow = tk.Tk()
     routeWindow.title("Flight Generator")
     thisTitleLabel = tk.Label(routeWindow,text="Flight Generator")
@@ -198,10 +188,42 @@ def routeDecider():
     outputLabel = tk.Label(routeWindow,text="Enter a Time and press the button")
     outputLabel.grid(row=2,column=1)
     routeWindow.mainloop()
-airportsListJson = open("airports.json",encoding='cp850')
-airportsList = json.load(airportsListJson)
-icaos = open("icaos.txt","r").read()
-icaoList = icaos.split(",")
+def settings():
+    def addAirport():
+        airportsListJson = open("airports.json", encoding='cp850')
+        airportsList1 = json.load(airportsListJson)
+        icaos = open("icaos.txt","a")
+        icaos2 = open("icaos.txt","r")
+        icaosList = icaos2.read().split(",")
+        enty = airportEntry.get()
+        ableToAdd = True
+        for i in icaosList:
+            if i == enty:
+                ableToAdd = False
+                break
+        found = False
+        if ableToAdd is True:
+            for i in airportsList1:
+                if i == enty:
+                    found = True
+                    break
+        if ableToAdd is True and found is True:
+            icaos.write(","+enty)
+            infoLabel.config(text=enty+" has been successfully added")
+        else:
+            infoLabel.config(text="Something when wrong, make sure you entered a valid icao")
+        airportEntry.delete(0,'end')
+        icaos.close()
+        icaos2.close()
+    settingsWindow = tk.Tk()
+    settingsWindow.title("Settings")
+    addAirportButton = tk.Button(settingsWindow,text="Add Airport",command=addAirport)
+    addAirportButton.grid(row=0,column=0)
+    airportEntry = tk.Entry(settingsWindow)
+    airportEntry.grid(row=0,column=1)
+    infoLabel = tk.Label(settingsWindow,text="Enter an Icao")
+    infoLabel.grid(row=1,column=0)
+    settingsWindow.mainloop()
 masterWindow = tk.Tk()
 masterWindow.title("Zakiack's MSFS EFB")
 titleLabel = tk.Label(masterWindow,text="MSFS EFB",font=("Arial",20))
@@ -212,4 +234,6 @@ loaderButton = tk.Button(masterWindow,text="Weight and Balance",font=("Arial",20
 loaderButton.grid(row=2,column=0)
 routeDecButton = tk.Button(masterWindow,text="Flight Generator",font=("Arial",20),command=routeDecider)
 routeDecButton.grid(row=3,column=0)
+settingsButton = tk.Button(masterWindow,text="Settings",font=("Arial",20),command=settings)
+settingsButton.grid(row=4,column=0)
 masterWindow.mainloop()
