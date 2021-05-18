@@ -13,7 +13,7 @@ def openTod():
             finalAlt = float(finalAltEntry.get())
             alt = aq.get("PLANE_ALTITUDE")
             y = finalAlt - alt
-            x = (y / math.tan(math.radians(-3))) / 6076.12
+            x = (y / math.tan(math.radians(-2.6))) / 6076.12
             sm.exit()
             todLabel.config(text="Descent Distance " + str(math.floor(x)))
         except Exception:
@@ -59,7 +59,7 @@ def openTod():
     desiredDistance.grid(row=2, column=0)
     distanceEntry = tk.Entry(todWindow)
     distanceEntry.grid(row=2, column=2)
-    calcButtonDeg = tk.Button(todWindow, text="-3 degree FPA", command=calcTodDegrees)
+    calcButtonDeg = tk.Button(todWindow, text="-2.6 degree FPA", command=calcTodDegrees)
     calcButtonDeg.grid(row=3, column=0)
     calcButtonVert = tk.Button(todWindow, text="Vertical Speed", command=calcTodVert)
     calcButtonVert.grid(row=3, column=1)
@@ -131,52 +131,63 @@ def openLoader():
     lbsEntry.grid(row=2, column=1)
     mainWindow.mainloop()
 def routeDecider():
-    airportsListJson = open("airports.json", encoding='cp850')
-    airportsList = json.load(airportsListJson)
-    icaos = open("icaos.txt", "r").read()
-    icaoList = icaos.split(",")
-    def calcDist(lat1,lon1,lat2,lon2):
-        R = 3440.1
-        dlon = lon2 - lon1
-        dlat = lat2 - lat1
-        a = (math.sin(dlat / 2)) ** 2 + math.cos(lat1) * math.cos(lat2) * (math.sin(dlon / 2)) ** 2
-        c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-        distance = R * c
-        return distance
-    def pickAirport(dist,lat,lon):
-        if dist:
-            airP = None
+    def pickAirport(minTime,maxTime,lat,lon):
+        airportsListJson = open("airports.json", encoding='cp850')
+        airportsList = json.load(airportsListJson)
+        icaos = open("icaos.txt", "r").read()
+        icaoList = icaos.split(",")
+        if minTime:
+            minDist = (minTime*500)-200
+            maxDist = (maxTime*500)+200
             airportCords1 = (lat,lon)
-            x=0
-            while airP is None and x<300:
-                x+=1
-                randomNum = numpy.random.randint(0, len(icaoList))
-                airport = airportsList[icaoList[randomNum]]
+            foundAirports = []
+            for i in icaoList:
+                airport = airportsList[i]
                 if airport["lat"] and airport["lon"]:
                     airportCords2 = (airport["lat"], airport["lon"])
                     actDist = haversine(airportCords1,airportCords2,unit="mi")
-                    print(airport["icao"],actDist)
-                    if dist-100 < actDist < dist+100:
-                        print("OWWHHHH GAWWD")
-                        airP = airport
-            return airP
+                    if minDist < actDist < maxDist:
+                        foundAirports.append(airport)
+            if len(foundAirports) != 0:
+                airP = foundAirports[numpy.random.randint(0,len(foundAirports))]
+                return airP
+            else: return None
         else:
             randomNum = numpy.random.randint(0, len(icaoList))
             airport = airportsList[icaoList[randomNum]]
             print(icaoList[randomNum])
             return airport
     def genRoute():
-        outputLabel.config(text="Something went wrong! Try Again")
-        global airportsList
-        time = float(timeEntry.get())
-        distance = time*500
-        secondAirport=None
-        y=0
-        while secondAirport is None and y<50:
-            airport = pickAirport(None,None,None)
-            secondAirport=pickAirport(distance,float(airport["lat"]),float(airport["lon"]))
-            y+=1
-        outputLabel.config(text=airport["icao"] + " -> " + secondAirport["icao"])
+        airportsListJson = open("airports.json", encoding='cp850')
+        airportsList = json.load(airportsListJson)
+        airportS = airportEntry.get()
+        outputLabel.config(text="No Valid Routes Exist")
+        if airportS == "":
+            timeEntered = timeEntry.get()
+            minTime = None
+            maxTime = None
+            if len(timeEntered.split("-"))==2:
+                minTime = float(timeEntered.split("-")[0])
+                maxTime = float(timeEntered.split("-")[1])
+            else:
+                minTime = float(timeEntered)
+                maxTime = float(timeEntered)
+            airport = None
+            secondAirport=None
+            y=0
+            while secondAirport is None and y<50:
+                airport = pickAirport(None,None,None,None)
+                secondAirport=pickAirport(minTime,maxTime,float(airport["lat"]),float(airport["lon"]))
+                y+=1
+            outputLabel.config(text=airport["icao"] + " -> " + secondAirport["icao"])
+        else:
+            time = float(timeEntry.get())
+            distance = time * 500
+            airport = airportsList[airportS]
+            secondAirport = None
+            if airport:
+                secondAirport = pickAirport(distance, float(airport["lat"]), float(airport["lon"]))
+            outputLabel.config(text=airport["icao"] + " <-> " + secondAirport["icao"])
     routeWindow = tk.Tk()
     routeWindow.title("Flight Generator")
     thisTitleLabel = tk.Label(routeWindow,text="Flight Generator")
@@ -185,8 +196,12 @@ def routeDecider():
     timeLabel.grid(row=1,column=0)
     timeEntry = tk.Entry(routeWindow)
     timeEntry.grid(row=1,column=2)
+    airportEntry = tk.Entry(routeWindow)
+    airportEntry.grid(row=2,column=2)
+    aiportLabel = tk.Label(routeWindow,text="Airport (Optional)")
+    aiportLabel.grid(row=2,column=0)
     outputLabel = tk.Label(routeWindow,text="Enter a Time and press the button")
-    outputLabel.grid(row=2,column=1)
+    outputLabel.grid(row=3,column=1)
     routeWindow.mainloop()
 def settings():
     def addAirport():
